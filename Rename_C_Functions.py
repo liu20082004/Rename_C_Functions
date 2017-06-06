@@ -6,6 +6,9 @@ import re
 import shutil
 
 
+def version():
+	return 'V2.2'
+
 # 找到指定目录下特点后缀的文件
 def findFileByTypes(path, isfullroot, *filetypes):
 	result = []
@@ -128,6 +131,56 @@ def add_NULL_For_Free(path,data):
 			newdata = item[2]
 	return newdata
 
+def remove_the_same_prefix(inlist):
+	inlist.sort(key=lambda x: len(x), reverse=False)
+	lenOfInlist = len(inlist)
+	newList = inlist[:]
+	for i in range(0,lenOfInlist):
+		for item in inlist[i:]:
+			if (inlist[i] != item) and (0 == item.find(inlist[i])):
+				newList.remove(item)
+	return newList
+
+def add_getversion_api(path):
+	str_cfile = '\\interface\\protocol_interface.c'
+	str_hfile = '\\interface\\protocol_interface.h'
+	str_c_getversion = '\n//获取库的版本\n\nint get_version()\n{\n\treturn Version;\n}\n'
+	str_h_getversion = '\t//获取库的版本\n\tPROTOCOL_API int get_version();\n\n#undef PROTOCOL_API'
+
+	try:
+		cfile = open(path+str_cfile,'r')
+		org_data = cfile.read()
+		cfile.close()
+
+		if -1 != org_data.find('#define Version 0000.000.0002'):
+			org_data = org_data.replace('#define Version 0000.000.0002','#define Version 00000000')
+
+		if -1 == org_data.find('int get_version()'):
+			org_data = org_data+ str_c_getversion
+
+		cfile = open(path+str_cfile,'w')
+		cfile.write(org_data)
+		cfile.close()
+
+	except IOError,e:
+		return [1,e]
+
+	try:
+		hfile = open(path+str_hfile,'r')
+		org_data = hfile.read()
+		hfile.close()
+		if -1 == org_data.find('PROTOCOL_API int get_version();'):
+			org_data = org_data.replace('#undef PROTOCOL_API',str_h_getversion)
+		hfile = open(path + str_hfile, 'w')
+		hfile.write(org_data)
+		hfile.close()
+	except IOError,e:
+		return [1,e]
+	return [0,0]
+
+
+
+
 def change_to_IOS_StaticLib(path, prefix, globalData, staticData, functionData):
 	functionData.append('send_cmd')
 	functionData.append('receive_cmd')
@@ -143,9 +196,9 @@ def change_to_IOS_StaticLib(path, prefix, globalData, staticData, functionData):
 	result = find_all_C_functions(allnewfiles)
 	functionData = functionData + result[1]
 
-	# 对全局变量和函数名进行按字符串长度进行排序
-	globalData.sort(key=lambda x: len(x), reverse=True)
-	functionData.sort(key=lambda x: len(x), reverse=True)
+	# 删除相同的前缀
+	functionData = remove_the_same_prefix(functionData)
+	globalData = remove_the_same_prefix(globalData)
 
 	for newfile in allnewfiles:
 		try:
@@ -171,8 +224,9 @@ def change_to_IOS_StaticLib(path, prefix, globalData, staticData, functionData):
 					# 处理全局变量和函数名的时候,会出现重复处理的问题,如g_p_stIdleLinkConfig和g_p_stIdleLinkConfigGroup,会执行两次替换
 					for item in functionData:
 						if item in line:
-							line = line.replace(item, prefix+item)
+							line = line.replace(item, prefix + item)
 
+					# 同一个位置仅替换一次是否可行,这样从长的字符串开始替换,就不会出错了吧?但怎么解决查找多个字符串的问题?
 					for item in globalData:
 						if item in line:
 							line = line.replace(item, prefix+item)
@@ -190,11 +244,20 @@ def change_to_IOS_StaticLib(path, prefix, globalData, staticData, functionData):
 
 if __name__ == '__main__':
 
+	str_CopyProjectNametxt = 'CopyProjectName.txt'
 	str_ProtocolFile = 'PROTOCOL'
-	str_NewProtocolFile = 'NEW_PROTOCOL'
 	path = os.getcwd() # 取得当前目录路径
-	pathPROTOCOL = os.path.join(path,str_ProtocolFile) # 合成全路径
-	if False == os.path.isdir( pathPROTOCOL ) : # 判断文件夹是否存在
+	pathCopyProjectName = os.path.join(path,str_CopyProjectNametxt)  # 合成全路径
+	try:
+		projectfile = open(pathCopyProjectName, 'r')
+		str_projectName = projectfile.readlines()
+		projectfile.close()
+		str_prefix = str_projectName[0]
+	except IOError, e:
+		str_prefix = raw_input('input name: ')
+
+	pathPROTOCOL = os.path.join(path,str_ProtocolFile)  # 合成全路径
+	if False == os.path.isdir(pathPROTOCOL):  # 判断文件夹是否存在
 		str_fail = 'Can not find %s\n' % pathPROTOCOL
 		result = [1, str_fail]
 	else :
@@ -206,15 +269,22 @@ if __name__ == '__main__':
 			staticData = result[2]
 			functionData = result[3]
 
-			pathNewPROTOCOL = os.path.join(path,str_NewProtocolFile)
+			print 'running...'
+			pathNewPROTOCOL = os.path.join(path,str_prefix)
 			if True == os.path.isdir(pathNewPROTOCOL): # 如果存在该目录,则先删除
 				shutil.rmtree(pathNewPROTOCOL)
 			shutil.copytree(pathPROTOCOL, pathNewPROTOCOL) #copy一份
-			result = change_to_IOS_StaticLib(pathNewPROTOCOL, 'a168_', globalData, staticData, functionData)
 
-	#if 0 == result[0]:
-	#	for a in result[1]:
-	#		print a
-	#	raw_input('Program Finish')
-	#else:
-	#	raw_input(result[1])
+			result = add_getversion_api(pathNewPROTOCOL)
+			if 1 == result[0]:
+				print result[1]
+				raw_input('Enterkey to exit')
+			else:
+				result = change_to_IOS_StaticLib(pathNewPROTOCOL, str_prefix+'_', globalData, staticData, functionData)
+				if 1 == result[0]:
+					print result[1]
+					raw_input('Enterkey to exit')
+				else:
+					print 'program finish'
+
+
