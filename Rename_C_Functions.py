@@ -137,7 +137,7 @@ def remove_the_same_prefix(inlist):
 	new_list = inlist[:]
 	for i in range(0, len_of_inlist):
 		for item in inlist[i:]:
-			if (inlist[i] != item) and (0 == item.find(inlist[i])):
+			if (inlist[i] != item) and (0 == item.find(inlist[i])) and (item in new_list):
 				new_list.remove(item)
 	return new_list
 
@@ -199,6 +199,8 @@ def change_to_ios_staticlib(root, prefix, global_list, static_list, function_lis
 	function_list = remove_the_same_prefix(function_list)
 	global_list = remove_the_same_prefix(global_list)
 
+	count = 0
+	num_of_file = len(allnewfiles)
 	for newfile in allnewfiles:
 		try:
 			c_file = open(newfile, 'r')
@@ -237,6 +239,8 @@ def change_to_ios_staticlib(root, prefix, global_list, static_list, function_lis
 					c_file.close()
 				except IOError, e:
 					return [1, e]
+		count = count + 1
+		print '%03d%%' %(100*count/num_of_file)  # 显示进度
 	return [0, 0]
 
 
