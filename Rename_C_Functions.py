@@ -108,6 +108,7 @@ def add_null_for_free(root, data):
 		['init_dtc_config_lib.c','free(g_p_stGeneralReadDtcConfigGroup[i]);','{\n\t\t\t\tfree(g_p_stGeneralReadDtcConfigGroup[i]);\n\t\t\t\tg_p_stGeneralReadDtcConfigGroup[i]=NULL;\n\t\t\t}'],
 		['init_freeze_config_lib.c','free(g_p_stUDSFreezeDtcConfigGroup[i]);','{\n\t\t\t\tfree(g_p_stUDSFreezeDtcConfigGroup[i]);\n\t\t\t\tg_p_stUDSFreezeDtcConfigGroup[i]=NULL;\n\t\t\t}'],
 		['init_freeze_config_lib.c','free(g_p_stUDSFreezeDSConfigGroup[i][j].pcSpecificDIDRule);','{\n\t\t\t\tfree(g_p_stUDSFreezeDSConfigGroup[i][j].pcSpecificDIDRule);\n\t\t\t\tg_p_stUDSFreezeDSConfigGroup[i][j].pcSpecificDIDRule=NULL;\n\t\t\t}'],
+		['init_freeze_config_lib.c','free(g_p_stUDSFreezeDSConfigGroup[i]);','{\n\t\t\t\tfree(g_p_stUDSFreezeDSConfigGroup[i]);\n\t\t\t\tg_p_stUDSFreezeDSConfigGroup[i]=NULL;\n\t\t\t}'],
 		['init_process_fun_config_lib.c','free(g_p_stProcessFunConfigGroup[i]);','{\n\t\t\t\tfree(g_p_stProcessFunConfigGroup[i]);\n\t\t\t\tg_p_stProcessFunConfigGroup[i]=NULL;\n\t\t\t}'],
 		['init_security_access_config_lib.c','free(g_p_stSecurityAccessConfigGroup[i]);','{\n\t\t\t\tfree(g_p_stSecurityAccessConfigGroup[i]);\n\t\t\t\tg_p_stSecurityAccessConfigGroup[i]=NULL;\n\t\t\t}'],
 		['init_information_config_lib.c','free(g_p_stInformationGroupConfigGroup[i]->pstDSFormulaConfig[j].pcFormula);','{\n\t\t\t\tfree(g_p_stInformationGroupConfigGroup[i]->pstDSFormulaConfig[j].pcFormula);\n\t\t\t\tg_p_stInformationGroupConfigGroup[i]->pstDSFormulaConfig[j].pcFormula=NULL;\n\t\t\t}'],
