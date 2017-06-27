@@ -7,7 +7,7 @@ import shutil
 
 
 def version():
-	return 'V2.2'
+	return 'V2.3'
 
 
 # 找到指定目录下特点后缀的文件
@@ -195,6 +195,9 @@ def change_to_ios_staticlib(root, prefix, global_list, static_list, function_lis
 
 	list_allfunctions = find_all_c_functions(allnewfiles)
 	function_list = function_list + list_allfunctions[1]
+	# 因为在注释中存在04()的结构,导致解析出认为04也是函数(正则表达式的问题)
+	if '04' in function_list:
+		function_list.remove('04')
 
 	# 删除相同的前缀
 	function_list = remove_the_same_prefix(function_list)
