@@ -7,7 +7,7 @@ import shutil
 
 
 def version():
-	return 'V2.3'
+	return 'V2.4'
 
 
 # 找到指定目录下特点后缀的文件
@@ -144,26 +144,35 @@ def remove_the_same_prefix(inlist):
 
 
 def add_getversion_api(root):
-	str_cfile = '\\interface\\protocol_interface.c'
+	str_cfiles = ['\\interface\\protocol_interface.c', '\\source\\protocol_interface.c']
 	str_hfile = '\\interface\\protocol_interface.h'
 	str_c_getversion = '\n//获取库的版本\n\nint get_version()\n{\n\treturn Version;\n}\n'
 	str_h_getversion = '\t//获取库的版本\n\tPROTOCOL_API int get_version();\n\n#undef PROTOCOL_API'
 
+	
+	for str_cfile in str_cfiles:
+		try:
+			cfile = open(root + str_cfile, 'r')
+			org_data = cfile.read()
+			cfile.close()
+		except IOError, e:
+			if str_cfile==str_cfiles[-1]:
+				return [1, 'Can not find protocol_interface.c\n']
+			else:
+				continue
+		else:
+			break
+
+	if -1 != org_data.find('#define Version 0000.000.0002'):
+		org_data = org_data.replace('#define Version 0000.000.0002', '#define Version 00000000')
+
+	if -1 == org_data.find('int get_version()'):
+		org_data = org_data + str_c_getversion
+
 	try:
-		cfile = open(root + str_cfile, 'r')
-		org_data = cfile.read()
-		cfile.close()
-
-		if -1 != org_data.find('#define Version 0000.000.0002'):
-			org_data = org_data.replace('#define Version 0000.000.0002', '#define Version 00000000')
-
-		if -1 == org_data.find('int get_version()'):
-			org_data = org_data + str_c_getversion
-
 		cfile = open(root + str_cfile, 'w')
 		cfile.write(org_data)
 		cfile.close()
-
 	except IOError, e:
 		return [1, e]
 
