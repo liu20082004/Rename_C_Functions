@@ -224,9 +224,11 @@ def change_to_ios_staticlib(root, prefix, global_list, static_list, function_lis
 		else:
 			data_new = ''
 			for line in data_org:
-				# 例外
-				if '#include' not in line:
 
+				if '#include' in line:
+					# 替换反斜杠
+					line = line.replace("\\", "/")
+				else:
 					# 增加程序释放动态分配内存后,指针没有赋值为NULL的情况
 					line = add_null_for_free(newfile, line)
 
